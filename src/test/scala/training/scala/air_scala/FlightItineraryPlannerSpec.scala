@@ -86,8 +86,8 @@ class FlightItineraryPlannerSpec extends FreeSpec with MustMatchers {
 
     "filtering itineraries by max connections" - {
       "when no itineraries given, returns no itineraries" in {
-        val itineraries = Seq.empty[Itinerary]
-        FlightPlanner.filterByMaxConnections(arbMaxConnections)(itineraries) mustBe Seq.empty[Itinerary]
+        val itineraries = Set.empty[ProposedItinerary]
+        FlightPlanner.filterByMaxConnections(arbMaxConnections)(itineraries) mustBe Set.empty[Itinerary]
       }
 
       "itineraries with too many connections are filtered out" in {
@@ -96,13 +96,13 @@ class FlightItineraryPlannerSpec extends FreeSpec with MustMatchers {
         val hasTwoConnections = NewarkToLondonToSFItinerary
         val hasMoreThanTwoConnections = SFToLondonRoundTripItinerary
 
-        val itineraries = Seq[Itinerary](
+        val itineraries = Set[ProposedItinerary](
           hasNoConnections,
           hasTwoConnections,
           hasMoreThanTwoConnections
         )
 
-        val expected = Seq(
+        val expected = Set(
           hasNoConnections,
           hasTwoConnections
         )
@@ -110,29 +110,29 @@ class FlightItineraryPlannerSpec extends FreeSpec with MustMatchers {
         FlightPlanner.filterByMaxConnections(maxConnections)(itineraries) mustBe expected
       }
     }
-//    "filtering itineraries by min connection time" - {
-//      "when no itineraries given, returns no itineraries" in {
-//        val itineraries = Set.empty[Itinerary]
-//        FlightPlanner.filterByMinConnectionTime(arbMinConnectionTime)(itineraries) mustBe Set.empty[Itinerary]
-//      }
-//
-//      "itineraries with a connection duration that is too short are filtered out" in {
-//        val minConnectionTime = (EWRFromSFOArrival to EWRToLHRDeparture).toDuration + 1.minute
-//        val connectionTimeTooShort = SFToLondonItinerary
-//        val containsConnectionTimeTooShort = SFToLondonItinerary
-//        val connectionTimesOk = NewarkToLondonToSFItinerary
-//
-//        val itineraries = Set[Itinerary](
-//          connectionTimeTooShort,
-//          connectionTimesOk,
-//          containsConnectionTimeTooShort
-//        )
-//
-//        FlightPlanner.filterByMinConnectionTime(minConnectionTime)(itineraries) mustBe Set(connectionTimesOk)
-//      }
-//
-//    }
-//
+    "filtering itineraries by min connection time" - {
+      "when no itineraries given, returns no itineraries" in {
+        val itineraries = Set.empty[ProposedItinerary]
+        FlightPlanner.filterByMinConnectionTime(arbMinConnectionTime)(itineraries) mustBe Set.empty[Itinerary]
+      }
+
+      "itineraries with a connection duration that is too short are filtered out" in {
+        val minConnectionTime = (EWRFromSFOArrival to EWRToLHRDeparture).toDuration + 1.minute
+        val connectionTimeTooShort = SFToLondonItinerary
+        val containsConnectionTimeTooShort = SFToLondonItinerary
+        val connectionTimesOk = NewarkToLondonToSFItinerary
+
+        val itineraries = Set[ProposedItinerary](
+          connectionTimeTooShort,
+          connectionTimesOk,
+          containsConnectionTimeTooShort
+        )
+
+        FlightPlanner.filterByMinConnectionTime(minConnectionTime)(itineraries) mustBe Set(connectionTimesOk)
+      }
+
+    }
+
 //    "getting layover times of itinerary" - {
 //      "when itinerary is empty, layover times is empty" in {
 //        Itinerary.layoverTimes(emptyItinerary) mustBe Seq.empty[Duration]

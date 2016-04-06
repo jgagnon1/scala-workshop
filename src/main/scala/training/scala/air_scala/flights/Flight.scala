@@ -64,7 +64,7 @@ class FlightPlanner(availableFlights: Set[Flight]) {
   def proposeItineraries(departAfter: DateTime)
                         (from: AirportCode, to: AirportCode)
                         (minConnectionTime: Duration = Period.minutes(90).toStandardDuration)
-                        (maxConnections: Int = 2): Set[Itinerary] = {
+                        (maxConnections: Int = 2): Set[ProposedItinerary] = {
     require(from != to, "Departing and arriving airport must be different.")
 
     def propose(from: AirportCode, to: AirportCode, departAfter: DateTime): Set[Seq[Flight]] = {
@@ -82,7 +82,11 @@ class FlightPlanner(availableFlights: Set[Flight]) {
     val proposed: Set[ProposedItinerary] = propose(from, to, departAfter)
       .map (ProposedItinerary)
 
-    FlightPlanner.filterByMaxConnections(maxConnections)(proposed.toSeq).toSet
+
+    val withMaxConn = FlightPlanner.filterByMaxConnections(maxConnections)(proposed)
+    val withMinConnTime = FlightPlanner.filterByMinConnectionTime(minConnectionTime)(proposed)
+
+    withMaxConn intersect withMinConnTime
   }
 
 
@@ -90,15 +94,22 @@ class FlightPlanner(availableFlights: Set[Flight]) {
 
 object FlightPlanner {
 
-  def filterByMaxConnections(maxConnections: Int)(itineraries: Seq[Itinerary]): Seq[Itinerary] = {
+  def filterByMaxConnections(maxConnections: Int)(itineraries: Set[ProposedItinerary]): Set[ProposedItinerary] = {
     itineraries.filter { it =>
       val itConnections = it.flights.size - 1
       itConnections <= maxConnections
     }
   }
 
-  def filterByMinConnectionTime(minConnectionTime: Int)(itineraries: Seq[Itinerary]): Seq[Itinerary] = {
-    
+  def filterByMinConnectionTime(minConnectionTime: Duration)(itineraries: Set[ProposedItinerary]): Set[ProposedItinerary] = {
+    itineraries.filter { it =>
+      it.flights.sliding(2).forall {
+        case Seq(f1, f2) =>
+          val connectionTime = Duration.millis(f2.schedule.origin.time.getMillis - f1.schedule.destination.time.getMillis)
+          connectionTime >= minConnectionTime
+        case _ => true
+      }
+    }
   }
 
 }
