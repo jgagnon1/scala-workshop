@@ -37,3 +37,15 @@ case class BusinessClassPassenger(familyName: String, givenName: String, middleN
 
   def seatingClass = BusinessClass
 }
+
+case class EconomyPlusPassenger(familyName: String, givenName: String, middleName: Option[String], seatPreference: PreferedPosition) extends Passenger {
+  type sClass = EconomyPlusSeating
+
+  def seatingClass = EconomyPlus
+}
+
+case class EconomyPassenger(familyName: String, givenName: String, middleName: Option[String], seatPreference: PreferedPosition) extends Passenger {
+  type sClass = EconomySeating
+
+  def seatingClass = Economy
+}

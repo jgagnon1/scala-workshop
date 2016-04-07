@@ -35,7 +35,9 @@ trait AircraftModel {
   self: AircraftClass =>
   def seats: Map[SeatingClass, Seq[Seat]]
 
-  def assignSeat(passenger: Passenger): Option[Seat]
+  def assignSeat(passenger: Passenger): Option[Seat] = ???
+
+  def seatings: Seq[Seating[Seat]] = ???
 }
 
 class Plane(val economySeating: Seq[Seating[EconomySeat]],
@@ -46,6 +48,8 @@ class Plane(val economySeating: Seq[Seating[EconomySeat]],
 
   def seats: Map[SeatingClass, Seq[Seat]] = seating.mapValues(_.map(_.seat))
 
+  override def seatings: Seq[Seating[Seat]] = seating.values.flatten.toSeq
+
   // Mutable map of seating assignment - Act as DB for now
   private var seating: Map[SeatingClass, Seq[Seating[Seat]]] = Map(
     BusinessClass -> businessClassSeating,
@@ -54,7 +58,7 @@ class Plane(val economySeating: Seq[Seating[EconomySeat]],
     Economy -> economySeating
   )
 
-  def assignSeat(passenger: Passenger): Option[Seat] = {
+  override def assignSeat(passenger: Passenger): Option[Seat] = {
     val availableSeats: Iterable[Seat] = seating(passenger.seatingClass).collect {
       case seating if seating.isAvailable => seating.seat
     }
