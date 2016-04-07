@@ -21,14 +21,11 @@ sealed trait Itinerary extends Ordered[Itinerary] {
   val flights: Seq[Flight]
 
   override def compare(that: Itinerary): Int = {
-    this.flights match {
-      case h +: _ =>
-        that.flights match {
-          case thatH +: _ => h compare thatH
-          case _ => 1
-        }
-      case _ if that.flights.isEmpty => 0
-      case _ => -1
+    (this.flights, that.flights) match {
+      case ((h +: _), (thatH +: _)) => h compare thatH
+      case ((h +: _), _) => 1 // `that` is empty
+      case (_, (thatH +: _)) => -1 // `this` is empty
+      case (Nil, Nil) => 0 // Both empty
     }
   }
 }
