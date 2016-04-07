@@ -5,10 +5,11 @@ import org.scalatest.MustMatchers
 import com.github.nscala_time.time.Imports._
 import squants.market._
 import squants.space.NauticalMiles
+import training.scala.air_scala
 import training.scala.air_scala.TestData
 import training.scala.air_scala.TestHelpers._
 import training.scala.air_scala.aircraft._
-import training.scala.air_scala.airline.{EconomyPassenger, FirstClassPassenger}
+import training.scala.air_scala.airline._
 import training.scala.air_scala.airport._
 import training.scala.air_scala.flights.{Flight, FlightLeg, FlightNumber, Schedule}
 import training.scala.air_scala.flights.scheduling.ProposedItinerary
@@ -81,6 +82,26 @@ class DomainTests extends FreeSpec with MustMatchers {
         }
 
       }
+      "Ordersky auto upgrade" in {
+        val economySeat: Seq[EconomySeat] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
+        val firstClassSeat: Seq[FirstClassSeat] = Seq( FirstClassSeat(1,'A'))
+
+        val aircraft = Aircraft(new Plane(economySeat, firstClassSeat = firstClassSeat) with TurboProp)
+        val SFOToEWRFlight =
+          new Flight(
+            FlightNumber("UA", 1683),
+            aircraft,
+            SFToNewarkSchedule,
+            USD(256.15),
+            NauticalMiles(2565)
+          )
+        val passenger = EconomyPassenger("Joe", "Smith", None, Window, Some(Ordersky))
+
+        Flight.checkinPassenger(passenger, SFOToEWRFlight).seatingClass mustBe FirstClass
+
+        }
+
+
     }
     "a plane" - {
       "has no available seats of passenger class" in {
@@ -204,6 +225,22 @@ class DomainTests extends FreeSpec with MustMatchers {
         passenger.seatPreference mustBe prefPosition
       }
     }
+    "an OrderSky FrequentFlyer" - {
+      "has a name" in {
+        val givenName = "Joe"
+        val familyName = "Smith"
+        val middleName = Some("Black")
+        val prefPosition = Aisle
+        val passenger = BusinessClassPassenger(familyName, givenName, middleName, prefPosition, Some(Ordersky))
+        passenger.givenName mustBe givenName
+        passenger.familyName mustBe familyName
+        passenger.middleName mustBe middleName
+        passenger.seatPreference mustBe prefPosition
+        passenger.fFlyer mustBe Some(Ordersky)
+      }
+    }
+
+
     "a seat" - {
       "has a row and position" in {
         val row = 41

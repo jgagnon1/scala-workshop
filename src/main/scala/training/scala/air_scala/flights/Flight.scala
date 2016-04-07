@@ -4,10 +4,10 @@ import com.github.nscala_time.time.Imports._
 import org.joda.time.DateTime
 import squants.market.Money
 import squants.space._
-import training.scala.air_scala.aircraft.{Seat, Aircraft}
-import training.scala.air_scala.airline.Passenger
+import training.scala.air_scala.aircraft.{Aircraft, Seat}
+import training.scala.air_scala.airline._
 import training.scala.air_scala.airport.AirportCode
-import training.scala.air_scala.flights.scheduling.{ProposedItinerary, Itinerary}
+import training.scala.air_scala.flights.scheduling.{Itinerary, ProposedItinerary}
 
 case class Flight(val number: FlightNumber,
   val aircraft: Aircraft,
@@ -41,7 +41,15 @@ case class Flight(val number: FlightNumber,
 object Flight {
   def checkinPassenger(passenger: Passenger, flight: Flight): Seat = {
     val asssignedSeat = flight.withAircraft { aircraft =>
-      aircraft.assignSeat(passenger)
+      val upgradedPassenger =
+      passenger.fFlyer match {
+        case Some(Ordersky) => FirstClassPassenger(passenger.familyName, passenger.givenName, passenger.middleName, passenger.seatPreference, passenger.fFlyer)
+        case Some(Klang) => BusinessClassPassenger(passenger.familyName, passenger.givenName, passenger.middleName, passenger.seatPreference, passenger.fFlyer)
+        case Some(Kelland) => EconomyPlusPassenger(passenger.familyName, passenger.givenName, passenger.middleName, passenger.seatPreference, passenger.fFlyer)
+        case _ => passenger
+      }
+
+      aircraft.assignSeat(upgradedPassenger)
     }
 
     asssignedSeat.get
