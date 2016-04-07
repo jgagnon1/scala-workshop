@@ -1,14 +1,21 @@
 package training.scala.air_scala.flights.scheduling
 
 import com.github.nscala_time.time.Imports._
-import squants.market.{USD, Money}
-import training.scala.air_scala.airport.AirportCode
 import training.scala.air_scala.flights.Flight
 
-import scala.annotation.tailrec
 
-
-object Itinerary { }
+object Itinerary {
+  def layoverTimes(itinerary: ProposedItinerary): Seq[Duration] = {
+    itinerary.flights.sliding(2).flatMap {
+      case Seq(x, y) =>
+        val d = Duration.millis(
+          y.schedule.origin.time.getMillis -
+            x.schedule.destination.time.getMillis)
+        Some(d)
+      case _ => None
+    }.toSeq
+  }
+}
 
 sealed trait Itinerary extends Ordered[Itinerary] {
   val flights: Seq[Flight]

@@ -133,32 +133,32 @@ class FlightItineraryPlannerSpec extends FreeSpec with MustMatchers {
 
     }
 
-//    "getting layover times of itinerary" - {
-//      "when itinerary is empty, layover times is empty" in {
-//        Itinerary.layoverTimes(emptyItinerary) mustBe Seq.empty[Duration]
-//      }
-//      "when itinerary is single flight, layover times is empty" in {
-//        Itinerary.layoverTimes(singletonItinerary) mustBe Seq.empty[Duration]
-//      }
-//      "when itinerary contains two flights" - {
-//        "a single layover is returned" in {
-//          val itinerary = ProposedItinerary(flights = Seq(SFOToEWRFlight, EWRToLHRFlight))
-//          val expectedLayovers = Seq((EWRFromSFOArrival to EWRToLHRDeparture).toDuration)
-//          Itinerary.layoverTimes(itinerary) mustBe expectedLayovers
-//        }
-//      }
-//      "when itinerary contains more than two flights" - {
-//        "a sequence of layovers is returned" in {
-//          val itinerary = SFToLondonRoundTripItinerary
-//          val expectedLayovers = Seq(
-//            (EWRFromSFOArrival to EWRToLHRDeparture).toDuration,
-//            (LHRFromEWRArrival to LHRToEWRDeparture).toDuration,
-//            (EWRFromLHRArrival to EWRToSFODeparture).toDuration
-//          )
-//          Itinerary.layoverTimes(itinerary) mustBe expectedLayovers
-//        }
-//      }
-//    }
+    "getting layover times of itinerary" - {
+      "when itinerary is empty, layover times is empty" in {
+        Itinerary.layoverTimes(emptyItinerary) mustBe Seq.empty[Duration]
+      }
+      "when itinerary is single flight, layover times is empty" in {
+        Itinerary.layoverTimes(singletonItinerary) mustBe Seq.empty[Duration]
+      }
+      "when itinerary contains two flights" - {
+        "a single layover is returned" in {
+          val itinerary = ProposedItinerary(flights = Seq(SFOToEWRFlight, EWRToLHRFlight))
+          val expectedLayovers = Seq((EWRFromSFOArrival to EWRToLHRDeparture).toDuration)
+          Itinerary.layoverTimes(itinerary) mustBe expectedLayovers
+        }
+      }
+      "when itinerary contains more than two flights" - {
+        "a sequence of layovers is returned" in {
+          val itinerary = SFToLondonRoundTripItinerary
+          val expectedLayovers = Seq(
+            (EWRFromSFOArrival to EWRToLHRDeparture).toDuration,
+            (LHRFromEWRArrival to LHRToEWRDeparture).toDuration,
+            (EWRFromLHRArrival to EWRToSFODeparture).toDuration
+          )
+          Itinerary.layoverTimes(itinerary) mustBe expectedLayovers
+        }
+      }
+    }
   }
 
   def arbMinConnectionTime = 90.minutes
