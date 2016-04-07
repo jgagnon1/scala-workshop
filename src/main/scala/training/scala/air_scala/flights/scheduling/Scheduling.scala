@@ -8,7 +8,15 @@ import training.scala.air_scala.flights.Flight
 import scala.annotation.tailrec
 
 
-object Itinerary { }
+object Itinerary {
+  def layoverTimes(itinerary: ProposedItinerary): Seq[Duration] = itinerary.flights match {
+    case _ :+ a :+ b =>
+      itinerary.flights.sliding(2).map { case Seq(x, y, _*) => Duration.millis(
+      y.schedule.origin.time.getMillis -
+      x.schedule.destination.time.getMillis)}.toSeq
+    case _ => Seq.empty[Duration]
+  }
+}
 
 sealed trait Itinerary extends Ordered[Itinerary] {
   val flights: Seq[Flight]

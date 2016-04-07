@@ -13,7 +13,7 @@ libraryDependencies ++= Dependencies.airScala
 // Simplify console work in test and main by importing our package space
 initialCommands in console := """
 import training.scala.air_scala._
-import training.scala.air_scala.domain._
+//import training.scala.air_scala.domain._
 """
 
 // Run and compilation settings

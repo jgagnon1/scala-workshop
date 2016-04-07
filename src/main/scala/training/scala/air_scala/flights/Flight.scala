@@ -101,15 +101,9 @@ object FlightPlanner {
     }
   }
 
-  def filterByMinConnectionTime(minConnectionTime: Duration)(itineraries: Set[ProposedItinerary]): Set[ProposedItinerary] = {
+  def filterByMinConnectionTime(minConnectionTime: Duration)(itineraries: Set[ProposedItinerary]): Set[ProposedItinerary] =
     itineraries.filter { it =>
-      it.flights.sliding(2).forall {
-        case Seq(f1, f2) =>
-          val connectionTime = Duration.millis(f2.schedule.origin.time.getMillis - f1.schedule.destination.time.getMillis)
-          connectionTime >= minConnectionTime
-        case _ => true
-      }
-    }
+    val layovers: Seq[_root_.com.github.nscala_time.time.Imports.Duration] = Itinerary.layoverTimes(it)
+    !layovers.exists(_ <= minConnectionTime)
   }
-
 }
