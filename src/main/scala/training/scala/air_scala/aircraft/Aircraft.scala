@@ -34,45 +34,22 @@ trait WideBodyJet extends AircraftClass {
 trait AircraftModel {
   self: AircraftClass =>
   def seats: Map[SeatingClass, Seq[Seat]]
-
-  def assignSeat(passenger: Passenger): Option[Seat]
 }
 
-class Plane(val economySeating: Seq[Seating[EconomySeat]],
-            val economyPlusSeating: Seq[Seating[EconomyPlusSeat]] = Nil,
-            val firstClassSeating: Seq[Seating[FirstClassSeat]] = Nil,
-            val businessClassSeating: Seq[Seating[BusinessClassSeat]] = Nil) extends AircraftModel {
+class Plane(val economySeat: Seq[Seat],
+            val economyPlusSeat: Seq[Seat] = Nil,
+            val firstClassSeat: Seq[Seat] = Nil,
+            val businessClassSeat: Seq[Seat] = Nil) extends AircraftModel {
   self: AircraftClass =>
 
-  def seats: Map[SeatingClass, Seq[Seat]] = seating.mapValues(_.map(_.seat))
-
-  // Mutable map of seating assignment - Act as DB for now
-  private var seating: Map[SeatingClass, Seq[Seating[Seat]]] = Map(
-    BusinessClass -> businessClassSeating,
-    FirstClass -> firstClassSeating,
-    EconomyPlus -> economyPlusSeating,
-    Economy -> economySeating
+  def seats: Map[SeatingClass, Seq[Seat]] = Map(
+    BusinessClass -> businessClassSeat,
+    FirstClass -> firstClassSeat,
+    EconomyPlus -> economyPlusSeat,
+    Economy -> economySeat
   )
 
-  def assignSeat(passenger: Passenger): Option[Seat] = {
-    val availableSeats: Iterable[Seat] = seating(passenger.seatingClass).collect {
-      case seating if seating.isAvailable => seating.seat
-    }
 
-    // Try finding preference, fallback to Aisle, fallback to first available
-    val selectedSeat = availableSeats.find(_.seatPosition == passenger.seatPreference) orElse
-      availableSeats.find(_.seatPosition == Aisle) orElse
-      availableSeats.headOption
-
-    // Assign seat to the map
-    selectedSeat.map { ss =>
-      val seatings: Seq[Seating[Seat]] = seating(ss.seatingClass)
-      // Update seating with the passenger
-      val assignedSeat = Seating(ss, Some(passenger))
-      seating = seating.updated(ss.seatingClass, assignedSeat +: seatings.filterNot(_.seat == ss))
-      assignedSeat.seat
-    }
-  }
 
 
 }
@@ -81,7 +58,34 @@ case class Seating[+C <: Seat](seat: C, passenger: Option[Passenger] = None) {
   def isAvailable: Boolean = passenger.isEmpty
 }
 
-case class Aircraft(model: AircraftModel)
+case class Aircraft(model: AircraftModel) {
+  def seatings: Seq[Seating[Seat]] = seating.values.flatten.toSeq
+
+  // Mutable map of seating assignment - Act as DB for now
+  private var seating: Map[SeatingClass, Seq[Seating[Seat]]] = model.seats.map {
+    case (sClass, seats) => sClass -> seats.map(Seating(_))
+  }
+
+   def assignSeat(passenger: Passenger): Option[Seat] = {
+     val availableSeats: Iterable[Seat] = seating(passenger.seatingClass).collect {
+       case seating if seating.isAvailable => seating.seat
+     }
+
+     // Try finding preference, fallback to Aisle, fallback to first available
+     val selectedSeat = availableSeats.find(_.seatPosition == passenger.seatPreference) orElse
+       availableSeats.find(_.seatPosition == Aisle) orElse
+       availableSeats.headOption
+
+     // Assign seat to the map
+     selectedSeat.map { ss =>
+       val seatings: Seq[Seating[Seat]] = seating(ss.seatingClass)
+       // Update seating with the passenger
+       val assignedSeat = Seating(ss, Some(passenger))
+       seating = seating.updated(ss.seatingClass, assignedSeat +: seatings.filterNot(_.seat == ss))
+       assignedSeat.seat
+     }
+   }
+}
 
 case class Airline(name: String, aircraft: Set[Aircraft])
 

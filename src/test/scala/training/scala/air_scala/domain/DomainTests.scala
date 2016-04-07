@@ -4,12 +4,13 @@ import org.scalatest.FreeSpec
 import org.scalatest.MustMatchers
 import com.github.nscala_time.time.Imports._
 import squants.market._
+import squants.space.NauticalMiles
 import training.scala.air_scala.TestData
 import training.scala.air_scala.TestHelpers._
 import training.scala.air_scala.aircraft._
-import training.scala.air_scala.airline.FirstClassPassenger
+import training.scala.air_scala.airline.{EconomyPassenger, FirstClassPassenger}
 import training.scala.air_scala.airport._
-import training.scala.air_scala.flights.{FlightLeg, Schedule, Flight}
+import training.scala.air_scala.flights.{Flight, FlightLeg, FlightNumber, Schedule}
 import training.scala.air_scala.flights.scheduling.ProposedItinerary
 
 class DomainTests extends FreeSpec with MustMatchers {
@@ -18,14 +19,82 @@ class DomainTests extends FreeSpec with MustMatchers {
   "the example domain" - {
     "a plane" - {
       "has at least economy seats" in {
-        val economySeats: Seq[Seating[EconomySeat]] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
-          .map(seat => Seating(seat, None))
+        val economySeats: Seq[EconomySeat] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
 
         val plane = new Plane(economySeats) with TurboProp
 
-        plane.economySeating mustBe economySeats
+        plane.economySeat mustBe economySeats
       }
     }
+    "a seat assignment" - {
+      "has available seats" in {
+        val economySeats: Seq[EconomySeat] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
+
+        val aircraft = Aircraft(new Plane(economySeats) with TurboProp)
+        val SFOToEWRFlight =
+          new Flight(
+            FlightNumber("UA", 1683),
+            aircraft,
+            SFToNewarkSchedule,
+            USD(256.15),
+            NauticalMiles(2565)
+          )
+        val passenger = EconomyPassenger("Joe", "Smith", None, Aisle)
+        val seat = Flight.checkinPassenger(passenger, SFOToEWRFlight)
+        seat mustBe EconomySeat(5, 'A', Aisle)
+      }
+
+      "has no available seats of preferred type" in {
+        val economySeats: Seq[EconomySeat] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
+
+        val aircraft = Aircraft(new Plane(economySeats) with TurboProp)
+        val SFOToEWRFlight =
+          new Flight(
+            FlightNumber("UA", 1683),
+            aircraft,
+            SFToNewarkSchedule,
+            USD(256.15),
+            NauticalMiles(2565)
+          )
+        val passenger = EconomyPassenger("Joe", "Smith", None, Window)
+        val seat = Flight.checkinPassenger(passenger, SFOToEWRFlight)
+        seat mustBe EconomySeat(5, 'A', Aisle)
+
+      }
+
+      "has no available seats of passenger class" in {
+        val economySeats: Seq[EconomySeat] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
+
+        val aircraft = Aircraft(new Plane(economySeats) with TurboProp)
+        val SFOToEWRFlight =
+          new Flight(
+            FlightNumber("UA", 1683),
+            aircraft,
+            SFToNewarkSchedule,
+            USD(256.15),
+            NauticalMiles(2565)
+          )
+        val passenger = FirstClassPassenger("Joe", "Smith", None, Window)
+        intercept[NoSuchElementException] {
+          Flight.checkinPassenger(passenger, SFOToEWRFlight)
+          fail()
+        }
+
+      }
+    }
+    "a plane" - {
+      "has no available seats of passenger class" in {
+        val economySeats: Seq[EconomySeat] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
+
+        val aircraft = Aircraft(new Plane(economySeats) with TurboProp)
+
+        val passenger = EconomyPassenger("Joe", "Smith", None, Window)
+        val seat = aircraft.assignSeat(passenger)
+        aircraft.seatings.contains(Seating(seat.get, Some(passenger))) mustBe true
+
+      }
+    }
+
 //    "an airport" - {
 //      "has a code and name, and a set of gates" in {
 //        val code = AirportCode("YXE")
@@ -79,6 +148,28 @@ class DomainTests extends FreeSpec with MustMatchers {
         "same itinerary should be equal" - {
           NewarkToLondonItinerary == NewarkToLondonItinerary mustBe true
         }
+      }
+      "check in for all flights" - {
+        val SFOToEWRFlight =
+          new Flight(
+            FlightNumber("UA", 1683),
+            Aircraft(CRJ300),
+            SFToNewarkSchedule,
+            USD(256.15),
+            NauticalMiles(2565)
+          )
+        val EWRtoSFOFlight =
+          new Flight(
+            FlightNumber("UA", 1684),
+            Aircraft(CRJ300),
+            NewarkToSFSchedule,
+            USD(256.15),
+            NauticalMiles(2565)
+          )
+        val passenger = EconomyPassenger("Joe", "Smith", None, Window)
+        val itinerary = ProposedItinerary(Seq(SFOToEWRFlight, EWRtoSFOFlight))
+        val assignedSeats = itinerary.checkInPassenger(passenger)
+        assignedSeats mustBe Seq((SFOToEWRFlight, EconomySeat(5, 'A', Aisle)), (EWRtoSFOFlight, EconomySeat(5, 'A', Aisle)))
       }
 
       "a tentative itinerary" - {

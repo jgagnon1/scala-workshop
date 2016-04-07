@@ -40,10 +40,9 @@ object TestData {
     )
   }
 
-  val CRJ300Economy: Seq[Seating[EconomySeat]] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
-    .map(seat => Seating(seat, None))
+  val CRJ300Economy: Seq[EconomySeat] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
 
-  case object CRJ300 extends Plane(economySeating = CRJ300Economy) with TurboProp
+  case object CRJ300 extends Plane(economySeat = CRJ300Economy) with TurboProp
 
   case object MD11 extends AircraftModel with WideBodyJet {
     val seats = HashMap[SeatingClass, Vector[Seat]](

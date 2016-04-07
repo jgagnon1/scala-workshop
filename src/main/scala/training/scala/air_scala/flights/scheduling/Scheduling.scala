@@ -1,6 +1,8 @@
 package training.scala.air_scala.flights.scheduling
 
 import com.github.nscala_time.time.Imports._
+import training.scala.air_scala.aircraft.Seat
+import training.scala.air_scala.airline.Passenger
 import training.scala.air_scala.flights.Flight
 
 
@@ -26,6 +28,13 @@ sealed trait Itinerary extends Ordered[Itinerary] {
       case ((h +: _), _) => 1 // `that` is empty
       case (_, (thatH +: _)) => -1 // `this` is empty
       case (Nil, Nil) => 0 // Both empty
+    }
+  }
+
+  def checkInPassenger(passenger: Passenger): Seq[(Flight, Seat)] = {
+    flights.map {flight =>
+      val seat = Flight.checkinPassenger(passenger, flight)
+      (flight, seat)
     }
   }
 }
