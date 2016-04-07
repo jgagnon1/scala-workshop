@@ -103,7 +103,7 @@ object FlightPlanner {
 
   def filterByMinConnectionTime(minConnectionTime: Duration)(itineraries: Set[ProposedItinerary]): Set[ProposedItinerary] =
     itineraries.filter { it =>
-    val layovers: Seq[_root_.com.github.nscala_time.time.Imports.Duration] = Itinerary.layoverTimes(it)
+    val layovers = Itinerary.layoverTimes(it)
     !layovers.exists(_ <= minConnectionTime)
   }
 }
