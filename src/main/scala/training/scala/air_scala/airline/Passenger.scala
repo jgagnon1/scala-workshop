@@ -18,7 +18,7 @@ sealed trait Passenger {
 
   def middleName: Option[String]
 
-  def seatPreference: SeatingPosition
+  def seatPreference: PreferedPosition
 
   def seatingClass: sClass
 }

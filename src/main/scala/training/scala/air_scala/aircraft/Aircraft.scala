@@ -2,7 +2,6 @@ package training.scala.air_scala.aircraft
 
 import training.scala.air_scala.airline.Passenger
 import training.scala.air_scala.airport.{LongRunway, MediumRunway, ShortRunway, LandingSurface}
-import scala.collection.mutable.{Map => MutableMap}
 
 // To be used Later, maybe for abstract types
 sealed trait AircraftManufacturer
@@ -45,10 +44,10 @@ class Plane(val economySeating: Seq[Seating[EconomySeat]],
             val businessClassSeating: Seq[Seating[BusinessClassSeat]] = Nil) extends AircraftModel {
   self: AircraftClass =>
 
-  def seats: Map[SeatingClass, Seq[Seat]] = Map() ++ seating.mapValues(_.map(_.seat))
+  def seats: Map[SeatingClass, Seq[Seat]] = seating.mapValues(_.map(_.seat))
 
   // Mutable map of seating assignment - Act as DB for now
-  private val seating: MutableMap[SeatingClass, Seq[Seating[Seat]]] = MutableMap(
+  private var seating: Map[SeatingClass, Seq[Seating[Seat]]] = Map(
     BusinessClass -> businessClassSeating,
     FirstClass -> firstClassSeating,
     EconomyPlus -> economyPlusSeating,
@@ -68,9 +67,9 @@ class Plane(val economySeating: Seq[Seating[EconomySeat]],
     // Assign seat to the map
     selectedSeat.map { ss =>
       val seatings: Seq[Seating[Seat]] = seating(ss.seatingClass)
+      // Update seating with the passenger
       val assignedSeat = Seating(ss, Some(passenger))
-      val updateSeatings = assignedSeat +: seatings.filterNot(_.seat == ss)
-      seating(ss.seatingClass) = updateSeatings
+      seating = seating.updated(ss.seatingClass, assignedSeat +: seatings.filterNot(_.seat == ss))
       assignedSeat.seat
     }
   }
