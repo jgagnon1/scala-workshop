@@ -31,7 +31,7 @@ sealed trait Itinerary extends Ordered[Itinerary] {
     }
   }
 
-  def checkInPassenger(passenger: Passenger): Seq[(Flight, Seat)] = {
+  def checkInPassenger(passenger: Passenger): Seq[(Flight, Option[Seat])] = {
     flights.map {flight =>
       val seat = Flight.checkinPassenger(passenger, flight)
       (flight, seat)
