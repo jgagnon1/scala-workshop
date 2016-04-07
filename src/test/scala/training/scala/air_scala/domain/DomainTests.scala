@@ -7,7 +7,7 @@ import squants.market._
 import training.scala.air_scala.TestData
 import training.scala.air_scala.TestHelpers._
 import training.scala.air_scala.aircraft._
-import training.scala.air_scala.airline.Canadian
+import training.scala.air_scala.airline.FirstClassPassenger
 import training.scala.air_scala.airport._
 import training.scala.air_scala.flights.{FlightLeg, Schedule, Flight}
 import training.scala.air_scala.flights.scheduling.ProposedItinerary
@@ -106,7 +106,7 @@ class DomainTests extends FreeSpec with MustMatchers {
         val familyName = "Smith"
         val middleName = Some("Black")
         val prefPosition = Aisle
-        val passenger = Canadian(familyName, givenName, middleName, prefPosition)
+        val passenger = FirstClassPassenger(familyName, givenName, middleName, prefPosition)
         passenger.givenName mustBe givenName
         passenger.familyName mustBe familyName
         passenger.middleName mustBe middleName
