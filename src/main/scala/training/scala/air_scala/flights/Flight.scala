@@ -4,7 +4,8 @@ import com.github.nscala_time.time.Imports._
 import org.joda.time.DateTime
 import squants.market.Money
 import squants.space._
-import training.scala.air_scala.aircraft.Aircraft
+import training.scala.air_scala.aircraft.{Seat, Aircraft}
+import training.scala.air_scala.airline.Passenger
 import training.scala.air_scala.airport.AirportCode
 import training.scala.air_scala.flights.scheduling.{ProposedItinerary, Itinerary}
 
@@ -28,6 +29,23 @@ case class Flight(val number: FlightNumber,
    */
   def -(that: Flight): Period = new Period(that.schedule.origin.time, this.schedule.destination.time)
 
+  // Loan method for Aircraft
+  def withAircraft[T](block: Aircraft => T): T = {
+    synchronized {
+      block(aircraft)
+    }
+  }
+
+}
+
+object Flight {
+  def checkinPassenger(passenger: Passenger, flight: Flight): Seat = {
+    val asssignedSeat = flight.withAircraft { aircraft =>
+      aircraft.model.assignSeat(passenger)
+    }
+
+    asssignedSeat.get
+  }
 }
 
 case class FlightNumber(airlineCode: String, flightNumber: Int) {

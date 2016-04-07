@@ -1,6 +1,6 @@
 package training.scala.air_scala.airline
 
-import training.scala.air_scala.aircraft.{PreferedPosition, SeatingPosition, SeatingClass}
+import training.scala.air_scala.aircraft._
 
 /**
  * Perfect core for future exercise regarding Abstract Types...
@@ -10,7 +10,7 @@ import training.scala.air_scala.aircraft.{PreferedPosition, SeatingPosition, Sea
  * Also, add "FrequentFlyer" info... maybe instead?
  */
 sealed trait Passenger {
-  type seatingClass <: SeatingClass
+  type sClass <: SeatingClass
 
   def familyName: String
 
@@ -18,10 +18,22 @@ sealed trait Passenger {
 
   def middleName: Option[String]
 
-  def seatPreference: PreferedPosition
+  def seatPreference: SeatingPosition
+
+  def seatingClass: sClass
 }
 
-case class Canadian(familyName: String, givenName: String, middleName: Option[String], seatPreference: PreferedPosition) extends Passenger
-case class American(familyName: String, givenName: String, middleName: Option[String], seatPreference: PreferedPosition) extends Passenger
+//case class Canadian(familyName: String, givenName: String, middleName: Option[String], seatPreference: PreferedPosition) extends Passenger
+//case class American(familyName: String, givenName: String, middleName: Option[String], seatPreference: PreferedPosition) extends Passenger
 
+case class FirstClassPassenger(familyName: String, givenName: String, middleName: Option[String], seatPreference: PreferedPosition) extends Passenger {
+  type sClass = FirstClassSeating
 
+  def seatingClass = FirstClass
+}
+
+case class BusinessClassPassenger(familyName: String, givenName: String, middleName: Option[String], seatPreference: PreferedPosition) extends Passenger {
+  type sClass = BusinessClassSeating
+
+  def seatingClass = BusinessClass
+}
