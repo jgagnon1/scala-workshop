@@ -19,18 +19,16 @@ class DomainTests extends FreeSpec with MustMatchers {
   "the example domain" - {
     "a plane" - {
       "has at least economy seats" in {
-        val economySeats: Seq[Seating[EconomySeat]] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
-          .map(seat => Seating(seat, None))
+        val economySeats: Seq[EconomySeat] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
 
         val plane = new Plane(economySeats) with TurboProp
 
-        plane.economySeating mustBe economySeats
+        plane.economySeat mustBe economySeats
       }
     }
     "a seat assignment" - {
       "has available seats" in {
-        val economySeats: Seq[Seating[EconomySeat]] = Seq(EconomySeat(5, 'A', Aisle))
-          .map(seat => Seating(seat, None))
+        val economySeats: Seq[EconomySeat] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
 
         val aircraft = Aircraft(new Plane(economySeats) with TurboProp)
         val SFOToEWRFlight =
@@ -47,8 +45,7 @@ class DomainTests extends FreeSpec with MustMatchers {
       }
 
       "has no available seats of preferred type" in {
-        val economySeats: Seq[Seating[EconomySeat]] = Seq(EconomySeat(5, 'B', Middle), EconomySeat(5, 'A', Aisle))
-          .map(seat => Seating(seat, None))
+        val economySeats: Seq[EconomySeat] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
 
         val aircraft = Aircraft(new Plane(economySeats) with TurboProp)
         val SFOToEWRFlight =
@@ -66,8 +63,7 @@ class DomainTests extends FreeSpec with MustMatchers {
       }
 
       "has no available seats of passenger class" in {
-        val economySeats: Seq[Seating[EconomySeat]] = Seq(EconomySeat(5, 'B', Middle), EconomySeat(5, 'A', Aisle))
-          .map(seat => Seating(seat, None))
+        val economySeats: Seq[EconomySeat] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
 
         val aircraft = Aircraft(new Plane(economySeats) with TurboProp)
         val SFOToEWRFlight =
@@ -88,17 +84,17 @@ class DomainTests extends FreeSpec with MustMatchers {
     }
     "a plane" - {
       "has no available seats of passenger class" in {
-        val economySeats: Seq[Seating[EconomySeat]] = Seq(EconomySeat(5, 'B', Middle), EconomySeat(5, 'A', Aisle))
-          .map(seat => Seating(seat, None))
+        val economySeats: Seq[EconomySeat] = Seq(EconomySeat(5, 'A'), EconomySeat(5, 'B'), EconomySeat(5, 'C'))
 
         val aircraft = Aircraft(new Plane(economySeats) with TurboProp)
 
         val passenger = EconomyPassenger("Joe", "Smith", None, Window)
-        val seat = aircraft.model.assignSeat(passenger)
-        aircraft.model.seatings.contains(Seating(seat.get, Some(passenger))) mustBe true
+        val seat = aircraft.assignSeat(passenger)
+        aircraft.seatings.contains(Seating(seat.get, Some(passenger))) mustBe true
 
       }
     }
+
 //    "an airport" - {
 //      "has a code and name, and a set of gates" in {
 //        val code = AirportCode("YXE")
@@ -152,6 +148,28 @@ class DomainTests extends FreeSpec with MustMatchers {
         "same itinerary should be equal" - {
           NewarkToLondonItinerary == NewarkToLondonItinerary mustBe true
         }
+      }
+      "check in for all flights" - {
+        val SFOToEWRFlight =
+          new Flight(
+            FlightNumber("UA", 1683),
+            Aircraft(CRJ300),
+            SFToNewarkSchedule,
+            USD(256.15),
+            NauticalMiles(2565)
+          )
+        val EWRtoSFOFlight =
+          new Flight(
+            FlightNumber("UA", 1684),
+            Aircraft(CRJ300),
+            NewarkToSFSchedule,
+            USD(256.15),
+            NauticalMiles(2565)
+          )
+        val passenger = EconomyPassenger("Joe", "Smith", None, Window)
+        val itinerary = ProposedItinerary(Seq(SFOToEWRFlight, EWRtoSFOFlight))
+        val assignedSeats = itinerary.checkInPassenger(passenger)
+        assignedSeats mustBe Seq((SFOToEWRFlight, EconomySeat(5, 'A', Aisle)), (EWRtoSFOFlight, EconomySeat(5, 'A', Aisle)))
       }
 
       "a tentative itinerary" - {

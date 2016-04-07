@@ -41,7 +41,7 @@ case class Flight(val number: FlightNumber,
 object Flight {
   def checkinPassenger(passenger: Passenger, flight: Flight): Seat = {
     val asssignedSeat = flight.withAircraft { aircraft =>
-      aircraft.model.assignSeat(passenger)
+      aircraft.assignSeat(passenger)
     }
 
     asssignedSeat.get
