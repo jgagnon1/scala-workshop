@@ -4,16 +4,20 @@ import com.github.nscala_time.time.Imports._
 import org.joda.time.DateTime
 import squants.market.Money
 import squants.space._
-import training.scala.air_scala.aircraft.{Seat, Aircraft}
-import training.scala.air_scala.airline.Passenger
+import training.scala.air_scala.aircraft.{Aircraft, Seat}
+import training.scala.air_scala.airline._
 import training.scala.air_scala.airport.AirportCode
-import training.scala.air_scala.flights.scheduling.{ProposedItinerary, Itinerary}
+import training.scala.air_scala.flights.scheduling.{Itinerary, ProposedItinerary}
+
+import scala.collection.mutable.Queue
 
 case class Flight(val number: FlightNumber,
   val aircraft: Aircraft,
   val schedule: Schedule,
   val price: Money,
   val miles: Length) extends Ordered[Flight] {
+
+  val standby: Queue[Passenger] = Queue[Passenger]()
 
   override val toString = s"Flight { number: $number, aircraft: $aircraft, schedule: $schedule, " +
     s"price: $price, miles: $miles }"
@@ -39,12 +43,25 @@ case class Flight(val number: FlightNumber,
 }
 
 object Flight {
-  def checkinPassenger(passenger: Passenger, flight: Flight): Seat = {
-    val asssignedSeat = flight.withAircraft { aircraft =>
-      aircraft.assignSeat(passenger)
+  def checkinPassenger(passenger: Passenger, flight: Flight): Option[Seat] = {
+    val assignedSeat = flight.withAircraft { aircraft =>
+      val upgradedPassenger =
+      passenger.fFlyer match {
+        case Some(Ordersky) => FirstClassPassenger(passenger.familyName, passenger.givenName, passenger.middleName, passenger.seatPreference, passenger.fFlyer)
+        case Some(Klang) => BusinessClassPassenger(passenger.familyName, passenger.givenName, passenger.middleName, passenger.seatPreference, passenger.fFlyer)
+        case Some(Kelland) => EconomyPlusPassenger(passenger.familyName, passenger.givenName, passenger.middleName, passenger.seatPreference, passenger.fFlyer)
+        case _ => passenger
+      }
+
+      aircraft.assignSeat(upgradedPassenger)
     }
 
-    asssignedSeat.get
+    assignedSeat match {
+      case None => flight.standby.enqueue(passenger)
+             None
+      case _ => assignedSeat
+
+    }
   }
 }
 
